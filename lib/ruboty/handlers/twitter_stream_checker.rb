@@ -14,7 +14,7 @@ module Ruboty
       env :TWITTER_ACCESS_TOKEN, "Twitter access token"
       env :TWITTER_ACCESS_TOKEN_SECRET, "Twitter access token secret"
       env :TWITTER_EXCEPT_RETWEET, "Twitter except retweet: true or false"
-      env :TWITTER_EXCEPT_REPLY, "Twitter except replay: true or false"
+      env :TWITTER_EXCEPT_REPLY, "Twitter except reply: true or false"
 
       def initialize(*args)
         super
