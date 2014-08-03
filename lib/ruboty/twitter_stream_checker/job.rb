@@ -13,7 +13,7 @@ module Ruboty
             if accept?(tweet)
               Message.new(
                 attributes.symbolize_keys.except(:body, :check_word).merge(robot: robot)
-              ).reply("#{tweet.user.name}:#{tweet.text.gsub(/\n/,' ')} #{tweet.url}")
+              ).reply("[#{tweet.user.name}]:#{tweet.text.gsub(/\n/,' ')} #{tweet.url}")
             end
           end
         end
