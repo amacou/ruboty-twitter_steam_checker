@@ -14,7 +14,7 @@ module Ruboty
             if accept?(tweet)
               Message.new(
                 attributes.symbolize_keys.except(:body, :check_word).merge(robot: robot)
-              ).reply("#{tweet.text.gsub(/\n/,' ')} #{tweet.url}")
+              ).reply(tweet_body)
             end
           end
         end
@@ -22,7 +22,7 @@ module Ruboty
       end
 
       def accept?(tweet)
-        !((except_retweet? && tweet.retweet?) || (except_reply? && tweet.reply?) || tweet.match(ng_regexp))
+        !((except_retweet? && tweet.retweet?) || (except_reply? && tweet.reply?) || (ng_regexp && tweet.match(ng_regexp)))
       end
 
       def except_reply?
@@ -38,6 +38,16 @@ module Ruboty
         Regexp.new(ENV["TWITTER_NG_REGEXP"])
       end
       memoize :ng_regexp
+
+      def tweet_body
+        ["#{tweet.text.gsub(/\n/,' ')} #{tweet.url}", options]
+      end
+
+      def message_option
+        return {} if ENV["TWITTER_MESSAGE_OPTION"].nil?
+        return eval(ENV["TWITTER_MESSAGE_OPTION"])
+      end
+      memoize :message_option
 
       def to_hash
         attributes
