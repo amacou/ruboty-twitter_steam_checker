@@ -13,10 +13,10 @@ module Ruboty
       env :TWITTER_CONSUMER_SECRET, "Twitter consumer secret (a.k.a. API secret)"
       env :TWITTER_ACCESS_TOKEN, "Twitter access token"
       env :TWITTER_ACCESS_TOKEN_SECRET, "Twitter access token secret"
-      env :TWITTER_ENABLE_EXCEPT_RETWEET, "Twitter except retweet: true or false"
-      env :TWITTER_ENABLE_EXCEPT_REPLY, "Twitter except reply: true or false"
-      env :TWITTER_NG_REGEXP, "Twitter except regexp, like hoge,huga"
-
+      env :TWITTER_ENABLE_EXCEPT_RETWEET, "Twitter except retweet: true or false", optional: true
+      env :TWITTER_ENABLE_EXCEPT_REPLY, "Twitter except reply: true or false", optional: true
+      env :TWITTER_NG_REGEXP, "Twitter except regexp, like hoge,huga", optional: true
+      env :TWITTER_MESSAGE_OPTION, "Twitter message option", optional: true
 
       def initialize(*args)
         super
