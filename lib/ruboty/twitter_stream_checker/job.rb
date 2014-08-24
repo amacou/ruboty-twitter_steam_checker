@@ -1,6 +1,7 @@
 module Ruboty
   module TwitterStreamChecker
     class Job
+      include Mem
       attr_reader :attributes, :thread
 
       def initialize(attributes)
@@ -13,7 +14,7 @@ module Ruboty
             if accept?(tweet)
               Message.new(
                 attributes.symbolize_keys.except(:body, :check_word).merge(robot: robot)
-              ).reply("[#{tweet.user.name}]:#{tweet.text.gsub(/\n/,' ')} #{tweet.url}")
+              ).reply("#{tweet.text.gsub(/\n/,' ')} #{tweet.url}")
             end
           end
         end
@@ -21,17 +22,22 @@ module Ruboty
       end
 
       def accept?(tweet)
-        return false if (except_retweet? && tweet.retweet?) || (except_reply? && tweet.reply?)
-        true
+        !((except_retweet? && tweet.retweet?) || (except_reply? && tweet.reply?) || tweet.match(ng_regexp))
       end
 
       def except_reply?
-        ENV["TWITTER_EXCEPT_REPLY"] == 'true'
+        ENV["TWITTER_ENABLE_EXCEPT_REPLY"] == 'true'
       end
 
       def except_retweet?
-        ENV["TWITTER_EXCEPT_RETWEET"] == 'true'
+        ENV["TWITTER_ENABLE_EXCEPT_RETWEET"] == 'true'
       end
+
+      def ng_regexp
+        return nil if ENV["TWITTER_NG_REGEXP"].nil?
+        Regexp.new(ENV["TWITTER_NG_REGEXP"])
+      end
+      memoize :ng_regexp
 
       def to_hash
         attributes
