@@ -14,7 +14,7 @@ module Ruboty
             if accept?(tweet)
               Message.new(
                 attributes.symbolize_keys.except(:body, :check_word).merge(robot: robot)
-              ).reply(tweet_body(tweet))
+              ).reply(*tweet_body(tweet))
             end
           end
         end
@@ -40,7 +40,7 @@ module Ruboty
       memoize :ng_regexp
 
       def tweet_body(tweet)
-        ["#{tweet.text.gsub(/\n/,' ')} #{tweet.url}", options]
+        ["#{tweet.text.gsub(/\n/,' ')} #{tweet.url}", message_option]
       end
 
       def message_option
