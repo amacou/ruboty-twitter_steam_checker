@@ -22,7 +22,7 @@ module Ruboty
       end
 
       def accept?(tweet)
-        !((except_retweet? && tweet.retweet?) || (except_reply? && tweet.reply?) || (ng_regexp && tweet.match(ng_regexp)))
+        !((except_retweet? && tweet.retweet?) || (except_reply? && tweet.reply?) || (ng_regexp && tweet.text.match(ng_regexp)))
       end
 
       def except_reply?
