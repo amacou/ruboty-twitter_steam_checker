@@ -1,3 +1,6 @@
+require 'active_support'
+require 'active_support/core_ext'
+
 module Ruboty
   module TwitterStreamChecker
     class Job
@@ -6,11 +9,12 @@ module Ruboty
 
       def initialize(attributes)
         @attributes = attributes.stringify_keys
+        @client = TweetStream::Client.new
       end
 
       def start(robot)
         @thread = Thread.new do
-          TweetStream::Client.new.track(check_word) do |tweet|
+          @client.track(check_word) do |tweet|
             if accept?(tweet)
               Message.new(
                 attributes.symbolize_keys.except(:body, :check_word).merge(robot: robot)
@@ -19,6 +23,10 @@ module Ruboty
           end
         end
         self
+      end
+
+      def stop
+        thread.kill
       end
 
       def accept?(tweet)
@@ -51,10 +59,6 @@ module Ruboty
 
       def to_hash
         attributes
-      end
-
-      def stop
-        thread.kill
       end
 
       def description
