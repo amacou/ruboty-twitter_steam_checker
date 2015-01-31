@@ -1,8 +1,6 @@
 module Ruboty
   module Handlers
     class TwitterStreamChecker < Base
-      attr_reader :running_job
-
       NAMESPACE = "twitter_stream_checker"
 
       on(/start tweet_check (?<check_word>.+)/, name: "start", description: "start new tweet_check")
@@ -66,7 +64,7 @@ module Ruboty
           )
         )
         register(job)
-        running_job = job.start(robot)
+        @running_job = job.start(robot)
         job
       end
 
@@ -100,9 +98,10 @@ module Ruboty
 
       def unregistered
         robot.brain.data[NAMESPACE] = nil
-        if running_job
-          running_job.stop
-          running_job = nil
+
+        if @running_job
+          @running_job.stop
+          @running_job = nil
         end
       end
     end
