@@ -1,11 +1,14 @@
+require 'digest/md5'
+
 module Ruboty
   module Handlers
     class TwitterStreamChecker < Base
       NAMESPACE = "twitter_stream_checker"
 
       on(/start tweet_check (?<check_word>.+)/, name: "start", description: "start new tweet_check")
-      on(/stop tweet_check/, name: "stop", description: "Stop a tweet_check")
-      on(/show tweet_check\z/, name: "show", description: "Show tweet_check")
+      on(/stop tweet_check (?<check_word>.+)/, name: "stop", description: "stop a tweet_check")
+      on(/list tweet_check\z/, name: "list", description: "list tweet_check")
+
 
       env :TWITTER_CONSUMER_KEY, "Twitter consumer key (a.k.a. API key)"
       env :TWITTER_CONSUMER_SECRET, "Twitter consumer secret (a.k.a. API secret)"
@@ -16,56 +19,57 @@ module Ruboty
       env :TWITTER_NG_REGEXP, "Twitter except regexp, like hoge,huga", optional: true
       env :TWITTER_MESSAGE_OPTION, "Twitter message option", optional: true
 
+
       def initialize(*args)
         super
-
-        TweetStream.configure do |config|
-          config.consumer_key       = ENV["TWITTER_CONSUMER_KEY"]
-          config.consumer_secret    = ENV["TWITTER_CONSUMER_SECRET"]
-          config.oauth_token        = ENV["TWITTER_ACCESS_TOKEN"]
-          config.oauth_token_secret = ENV["TWITTER_ACCESS_TOKEN_SECRET"]
-          config.auth_method        = :oauth
-        end
-
         check_start
       end
 
       def start(message)
         create(message)
-        message.reply("Tweet check is started")
+        message.reply("Tweet check #{message[:check_word]} is started")
       end
 
       def stop(message)
-        if registered?
-          unregistered
-          message.reply("Tweet check is stopped")
+        job_id = job_id_for_message(message)
+
+        if registered?(job_id)
+          unregistered(job_id)
+          message.reply("Tweet check #{message[:check_word]} is stopped ")
         else
-          message.reply("Checking tweet is does not exist")
+          message.reply("Checking tweet check #{message[:check_word]} is does not exist")
         end
       end
 
-      def show(message)
-        message.reply(summary, code: true)
+      def list(message)
+        if job_descriptions.present?
+          job_descriptions.each do |description|
+            message.reply(description, code: true)
+          end
+        else
+          message.reply(empty_message, code: true)
+        end
       end
 
       def check_start
-        if registered?
-          job = Ruboty::TwitterStreamChecker::Job.new(registered)
-          running_job = job.start(robot)
+        registered.values.each do |value|
+          job = Ruboty::TwitterStreamChecker::Job.new(value)
+          job.start(robot)
         end
       end
 
       def create(message)
-        unregistered if registered?
+        job_id = job_id_for_message(message)
+
+        return if registered?(job_id)
 
         job = Ruboty::TwitterStreamChecker::Job.new(
           message.original.except(:robot).merge(
-            check_word: message[:check_word],
+          check_word: message[:check_word],
+          id: job_id
           )
         )
         register(job)
-        @running_job = job.start(robot)
-        job
       end
 
       def summary
@@ -81,28 +85,39 @@ module Ruboty
       end
 
       def job_descriptions
-        Ruboty::TwitterStreamChecker::Job.new(registered).description
+        running_jobs.values.map(&:description)
       end
 
       def register(job)
-        robot.brain.data[NAMESPACE] = job.attributes
+        registered[job.id] = job.attributes
+        running_jobs[job.id] = job.start(robot)
       end
 
-      def registered?
-        !robot.brain.data[NAMESPACE].nil?
+      def registered?(job_id)
+        registered[job_id].present?
       end
 
       def registered
-        robot.brain.data[NAMESPACE]
+        robot.brain.data[NAMESPACE] ||= {}
       end
 
-      def unregistered
-        robot.brain.data[NAMESPACE] = nil
+      def unregistered(job_id)
+        return nil unless registered?(job_id)
 
-        if @running_job
-          @running_job.stop
-          @running_job = nil
+        registered.delete(job_id)
+
+        if running_jobs[job_id]
+          running_jobs[job_id].stop
+          running_jobs.delete job_id
         end
+      end
+
+      def running_jobs
+        @running_jobs ||= {}
+      end
+
+      def job_id_for_message(message)
+        Digest::MD5.hexdigest(message[:check_word])
       end
     end
   end

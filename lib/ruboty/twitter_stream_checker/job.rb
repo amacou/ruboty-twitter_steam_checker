@@ -1,6 +1,5 @@
-require 'active_support'
-require 'active_support/core_ext'
-
+require "twitter"
+require 'pp'
 module Ruboty
   module TwitterStreamChecker
     class Job
@@ -8,13 +7,19 @@ module Ruboty
       attr_reader :attributes, :thread
 
       def initialize(attributes)
+        @client = Twitter::Streaming::Client.new do |config|
+          config.consumer_key = CONSUMER_KEY
+          config.consumer_secret = CONSUMER_SECRET
+          config.access_token = ACCESS_TOKEN
+          config.access_token_secret = ACCESS_TOKEN_SECRET
+        end
+
         @attributes = attributes.stringify_keys
-        @client = TweetStream::Client.new
       end
 
       def start(robot)
         @thread = Thread.new do
-          @client.track(check_word) do |tweet|
+          @client.filter(track: check_word) do |tweet|
             if accept?(tweet)
               Message.new(
                 attributes.symbolize_keys.except(:body, :check_word).merge(robot: robot)
@@ -62,7 +67,7 @@ module Ruboty
       end
 
       def description
-        "checking #{check_word.join(',')}"
+        "Tweet checking #{check_word}"
       end
 
       def id
@@ -70,7 +75,7 @@ module Ruboty
       end
 
       def check_word
-        attributes["check_word"].split(',').map(&:strip)
+        attributes["check_word"]
       end
 
       def from

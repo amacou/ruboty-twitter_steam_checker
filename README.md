@@ -21,10 +21,10 @@ And then execute:
 ruboty start tweet_checker some_checing_word
 
 #stop checkingtwitter
-ruboty stop tweet_checker
+ruboty stop tweet_checker some_checing_word
 
-#show checking twitter
-ruboty show tweet_check
+#list checking words
+ruboty list tweet_check
 > checking some_checing_word
 ```
 
