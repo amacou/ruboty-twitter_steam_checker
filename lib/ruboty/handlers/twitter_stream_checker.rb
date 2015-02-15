@@ -22,6 +22,7 @@ module Ruboty
 
       def initialize(*args)
         super
+        compatible_brain
         check_start
       end
 
@@ -118,6 +119,14 @@ module Ruboty
 
       def job_id_for_message(message)
         Digest::MD5.hexdigest(message[:check_word])
+      end
+
+      private
+
+      def compatible_brain
+        if registered.is_a(String)
+          robot.brain.data[NAMESPACE] = {}
+        end
       end
     end
   end
