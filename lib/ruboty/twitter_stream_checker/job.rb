@@ -1,5 +1,5 @@
 require "twitter"
-require 'pp'
+
 module Ruboty
   module TwitterStreamChecker
     class Job
