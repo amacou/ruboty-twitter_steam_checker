@@ -22,6 +22,7 @@ module Ruboty
 
       def initialize(*args)
         super
+        cleaning_brain if registered.is_a?(String)
         check_start
       end
 
@@ -54,7 +55,7 @@ module Ruboty
       def check_start
         registered.values.each do |value|
           job = Ruboty::TwitterStreamChecker::Job.new(value)
-          job.start(robot)
+          running_jobs[job.id] = job.start(robot)
         end
       end
 
@@ -118,6 +119,12 @@ module Ruboty
 
       def job_id_for_message(message)
         Digest::MD5.hexdigest(message[:check_word])
+      end
+
+      private
+
+      def cleaning_brain
+        robot.brain.data[NAMESPACE] = {}
       end
     end
   end
