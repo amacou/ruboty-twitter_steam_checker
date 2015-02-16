@@ -55,7 +55,7 @@ module Ruboty
       def check_start
         registered.values.each do |value|
           job = Ruboty::TwitterStreamChecker::Job.new(value)
-          job.start(robot)
+          running_jobs[job.id] = job.start(robot)
         end
       end
 
