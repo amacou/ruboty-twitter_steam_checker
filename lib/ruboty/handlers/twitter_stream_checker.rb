@@ -22,7 +22,7 @@ module Ruboty
 
       def initialize(*args)
         super
-        compatible_brain
+        cleaning_brain if registered.is_a?(String)
         check_start
       end
 
@@ -123,10 +123,8 @@ module Ruboty
 
       private
 
-      def compatible_brain
-        if registered.is_a(String)
-          robot.brain.data[NAMESPACE] = {}
-        end
+      def cleaning_brain
+        robot.brain.data[NAMESPACE] = {}
       end
     end
   end
