@@ -17,6 +17,7 @@ module Ruboty
       env :TWITTER_ENABLE_EXCEPT_RETWEET, "Twitter except retweet: true or false", optional: true
       env :TWITTER_ENABLE_EXCEPT_REPLY, "Twitter except reply: true or false", optional: true
       env :TWITTER_NG_REGEXP, "Twitter except regexp, like hoge,huga", optional: true
+      env :TWITTER_ACCEPT_LANG_REGEXP, "Twitter accept regexp, line /ja/", optional: true
       env :TWITTER_MESSAGE_OPTION, "Twitter message option", optional: true
 
 

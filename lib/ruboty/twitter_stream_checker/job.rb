@@ -18,6 +18,7 @@ module Ruboty
       end
 
       def start(robot)
+        logger.info('start tweet chack')
         @thread = Thread.new do
           @client.filter(track: check_word) do |tweet|
             if accept?(tweet)
@@ -35,7 +36,23 @@ module Ruboty
       end
 
       def accept?(tweet)
-        !((except_retweet? && tweet.retweet?) || (except_reply? && tweet.reply?) || (ng_regexp && tweet.text.match(ng_regexp)))
+        case
+        when (except_retweet? && tweet.retweet?)
+          logger.info("except_retweet")
+          false
+        when (except_reply? && tweet.reply?)
+          logger.info("except_reply")
+          false
+        when (ng_regexp && tweet.text.match(ng_regexp))
+          logger.info("except regexp")
+          logger.info(tweet.text)
+          false
+        when !(accept_lang_regxp && tweet.lang.match(accept_lang_regxp))
+          logger.info("except lang #{tweet.lang}")
+          false
+        else
+          true
+        end
       end
 
       def except_reply?
@@ -50,10 +67,18 @@ module Ruboty
         return nil if ENV["TWITTER_NG_REGEXP"].nil?
         Regexp.new(ENV["TWITTER_NG_REGEXP"])
       end
-      memoize :ng_regexp
+
+      def accept_lang_regxp
+        return nil if ENV["TWITTER_ACCEPT_LANG_REGEXP"].nil?
+        ENV["TWITTER_ACCEPT_LANG_REGEXP"]
+      end
 
       def tweet_body(tweet)
-        ["#{tweet.text.gsub(/\n/,' ')} #{tweet.url}", message_option]
+        tweet_text = tweet.text.gsub(/\n/,' ')
+        URI.extract(tweet_text).each do |url|
+          tweet_text.gsub!(url,'')
+        end
+        ["#{tweet_text} #{tweet.url}", message_option]
       end
 
       def message_option
