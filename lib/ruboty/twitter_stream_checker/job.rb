@@ -18,7 +18,7 @@ module Ruboty
       end
 
       def start(robot)
-        logger.info('start tweet chack')
+        Ruboty.logger.info('start tweet chack')
         @thread = Thread.new do
           @client.filter(track: check_word) do |tweet|
             if accept?(tweet)
@@ -38,17 +38,17 @@ module Ruboty
       def accept?(tweet)
         case
         when (except_retweet? && tweet.retweet?)
-          logger.info("except_retweet")
+          Ruboty.logger.info("except_retweet")
           false
         when (except_reply? && tweet.reply?)
-          logger.info("except_reply")
+          Ruboty.logger.info("except_reply")
           false
         when (ng_regexp && tweet.text.match(ng_regexp))
-          logger.info("except regexp")
-          logger.info(tweet.text)
+          Ruboty.logger.info("except regexp")
+          Ruboty.logger.info(tweet.text)
           false
         when !(accept_lang_regxp && tweet.lang.match(accept_lang_regxp))
-          logger.info("except lang #{tweet.lang}")
+          Ruboty.logger.info("except lang #{tweet.lang}")
           false
         else
           true
